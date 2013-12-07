@@ -6,7 +6,7 @@ def index(request):
     return HttpResponse("Hi, you are in matchs index.")
 
 def detail(request, match_id):
-    return render_to_response('matchs/detail.html', {'match_id': match_id}) # this view is using Template
+    return render_to_response('matchs/detail.html', {'match_id': match_id}) # this view is using Template.
 
 def add(request, match_id):
     return render_to_response('matchs/form.html', {'match_id': match_id})
