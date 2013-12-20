@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %} Match Center{% endblock %}
+{% block match %} active {% endblock %}
+{% block content %}
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+    <div class="panel-heading" style="cursor: pointer" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+      <h4 class="panel-title">
+        <a href="#">
+          Search box
+        </a>
+          <i class="pull-right glyphicon glyphicon-align-justify"></i>
+      </h4>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse">
+      <div class="panel-body">
+        <form acction="/match/" method="GET" class="form-horizontal" role="form">
+          <div class="row">
+              <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-4" style="padding-top: 7px">Place</label>
+                    <div class="col-sm-6">
+                      <input type="text" class="form-control" name="place" id="inputEmail3" value="{{ place }}" placeholder="Place">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-4" style="padding-top: 7px">Competitor</label>
+                    <div class="col-sm-6">
+                      <input type="text" class="form-control" name="competitor" id="inputPassword3" value="{{ competitor }}" placeholder="Competitor">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-4" style="padding-top: 7px">Player name</label>
+                    <div class="col-sm-6">
+                      <input type="text" class="form-control" name="playername" id="inputPassword3" value="{{ playername }}" placeholder="Player name">
+                    </div>
+                  </div>
+              </div>
+              <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-3" style="padding-top: 7px">Date</label>
+                    <div class="col-sm-8">
+                      <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                      <i class="glyphicon glyphicon-calendar icon-calendar icon-large"></i>
+                      <span></span> <b class="caret"></b>
+                   </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="">
+                      <button type="submit" style="float: right;margin: 48px 60px 0 0;" class="btn btn-primary">Search</button>
+                    </div>
+                  </div>
+              </div>
+          </div>
+            <input id="fromdate" type="hidden" value="{{ fromdate }}" name="fromdate"/>
+        </form>
+      </div>
+    </div>
+    </div>
+    </div>
+    <br>
+
+    {% for match in matchs %}
+        <div class="match_detail" id="match-{{ match.id }}">
+            <p class="header"><a href="/match/detail/{{ match.id }}">{{ match.name|capfirst }}</a>
+                {% if perms.match.can_modify %}
+                <img class="pull-right delete-btn" data-id="{{ match.id }}" width="20px" height="20px" src="/static/img/close_index.png"/>
+                {% endif %}
+            </p>
+            <div class="body">
+                <div class="row">
+                  <div class="col-md-2">
+                      <p>Time: {{ match.time|date:"D d M Y" }}</p>
+                        <p>Place: {{ match.place }}</p>
+                        <a href="/match/detail/{{ match.id }}">See more</a>
+                  </div>
+                    <div class="col-md-10">
+                    <div class="row result">
+                       <div class="col-md-5">{{ club.name }}</div>
+                       <div class="col-md-2">vs</div>
+                       <div class="col-md-5">{{ match.competitor }}</div>
+                    </div>
+                    <div class="row result">
+                       <div class="result_below">
+                       {% if match.result %}
+                           {{ match.result }}
+                       {% else %}
+                            Coming soon !
+                       {% endif %}
+                       </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="paginator">
+        <ul class="pager">
+            {% if matchs.has_previous %}
+                <li class="previous"><a href="?page={{ matchs.previous_page_number }}{% if is_search %}{% if place %}&place={{ place }}{% endif %}{% if playername %}&playername={{ playername }}{% endif %}{% if competitor %}&competitor={{ competitor }}{% endif %}&fromdate={{ fromdate }}{% endif %}">&larr; Older</a></li>
+            {% endif %}
+
+            <span class="current">
+                Page {{ matchs.number }} of {{ matchs.paginator.num_pages }}.
+            </span>
+            {% if matchs.has_next %}
+                <li class="next"><a href="?page={{ matchs.next_page_number }}{% if is_search %}{% if place %}&place={{ place }}{% endif %}{% if playername %}&playername={{ playername }}{% endif %}{% if competitor %}&competitor={{ competitor }}{% endif %}&fromdate={{ fromdate }}{% endif %}">Newer &rarr;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('#reportrange').daterangepicker(
+                     {
+                        startDate: moment().subtract('days', 29),
+                        endDate: moment(),
+                        minDate: '01/01/2012',
+                        maxDate: '12/31/2014',
+                        dateLimit: { days: 60 },
+                        showDropdowns: true,
+                        showWeekNumbers: true,
+                        timePicker: false,
+                        timePickerIncrement: 1,
+                        timePicker12Hour: true,
+                        ranges: {
+                           'Today': [moment(), moment()],
+                           'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+                           'Last 7 Days': [moment().subtract('days', 6), moment()],
+                           'Last 30 Days': [moment().subtract('days', 29), moment()],
+                           'This Month': [moment().startOf('month'), moment().endOf('month')],
+                           'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+                        },
+                        opens: 'left',
+                        buttonClasses: ['btn btn-default'],
+                        applyClass: 'btn-small btn-primary',
+                        cancelClass: 'btn-small',
+                        format: 'MM/DD/YYYY',
+                        separator: ' to ',
+                        locale: {
+                            applyLabel: 'Submit',
+                            fromLabel: 'From',
+                            toLabel: 'To',
+                            customRangeLabel: 'Custom Range',
+                            daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr','Sa'],
+                            monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                            firstDay: 1
+                        }
+                     },
+                     function(start, end) {
+                        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                        $('#fromdate').val(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                     }
+                  );
+            {% if is_search %}
+                console.log($('#fromdate').val())
+                $('#reportrange span').html($('#fromdate').val())
+                console.log($('#fromdate').val())
+            {% else %}
+                $('#reportrange span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+                $('#fromdate').val(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+            {% endif %}
+            $('.delete-btn').click(function(){
+                var match_id = $(this).data('id');
+                console.log(match_id);
+               $.ajax({
+                      url: "/match/delete/" + match_id + "/",
+                      type: "GET",
+                      data: {
+                          'is_ajax': 1,
+                          'csrfmiddlewaretoken' : '{{ csrf_token }}'
+                      },
+                      success: function(data, textStatus){
+                            $('#match-' + match_id).fadeOut('slow');
+                            setTimeout(function(){$('#match-' + match_id).remove()}, 1000);
+                      },
+                      error: function(data, textStatus){
+
+                      }
+                  })
+            });
+        })
+    </script>
+{% endblock %}

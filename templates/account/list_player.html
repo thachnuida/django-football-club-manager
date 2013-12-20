@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %} List player {% endblock %}
+{% block list %} active {% endblock %}
+{% block content %}
+    <br>
+    {% for lp in list_player %}
+
+        {% if lp.profile.avatar %}
+            <div class="box">
+                <img width="200px" height="200px" class="event-cover" src="{{ MEDIA_URL }}{{ lp.profile.avatar }}"/>
+                  <div class="cover left">
+                      <img onclick="window.location='/account/delete/' + {{ lp.id }}" width="20px" height="20px" src="/static/img/close.png"/>
+                      <h2 class="title">{{ lp.first_name}} {{ lp.last_name }}</h2>
+                      <p class="intro">Pos: {{ lp.profile.pos }}</p>
+                      <p class="intro">Number: {{ lp.profile.num }}</p>
+                      <p class="intro">Contact: {{ lp.profile.contact }}</p>
+                      <div class="btn1"><a href="/account/list_player/{{ lp.id }}">Read more...</a></div>
+                  </div>
+            </div>
+	    {% endif %}
+    {% endfor %}
+    <div class="clearfix"></div>
+    <br>
+    <button class="btn btn-primary btn-sm" onClick="window.location='{% url "account:register" %}';">New player</button>
+{% endblock %}

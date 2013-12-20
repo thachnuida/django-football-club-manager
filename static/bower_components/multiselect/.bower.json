@@ -1,0 +1,15 @@
+{
+  "name": "multiselect",
+  "homepage": "https://github.com/lou/multi-select",
+  "version": "0.9.8",
+  "_release": "0.9.8",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.9.8",
+    "commit": "dec9bdb68e7641ef68e00fe9fc4279c28d7382e8"
+  },
+  "_source": "git://github.com/lou/multi-select.git",
+  "_target": "~0.9.8",
+  "_originalSource": "multiselect",
+  "_direct": true
+}

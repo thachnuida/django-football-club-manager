@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block extend_lib %}
+    <link rel="stylesheet" href="{% static "bower_components/multiselect/css/multi-select.css" %}"/>
+    <script src="{% static "bower_components/multiselect/js/jquery.multi-select.js" %}"></script>
+{% endblock %}
+{% block title %}match detail{% endblock %}
+{% block match %} active {% endblock %}
+{% block content %}
+    <div class="match-info">
+    <h1>{{ match.name|capfirst }}</h1>
+    {% if is_modify %}
+    <p>
+        <span>Action</span>
+        <a href="/match/edit/{{ match.id }}">Edit</a>
+        <a href="/match/delete/{{ match.id }}">Delete</a>
+    </p>
+    {% endif %}
+    <p><span>Time:</span> {{ match.time|date:"D d M Y" }}</p>
+    <p><span>Place:</span> {{ match.place }}</p>
+    <p><span>Competitor:</span> {{ match.competitor }}</p>
+    <p><span>Result:</span> {{ match.result }}</p>
+    </div>
+    {% if is_modify %}
+    <select multiple="multiple"  id="my-select" name="my-select[]">
+      {% for play in all_player %}
+           <option value='{{ play.id }}'>
+               {% if play.first_name or play.last_name %}
+                   {{ play.first_name }} {{ play.last_name }}
+               {% else %}
+                   {{ play.username }}
+               {% endif %}
+           </option>
+      {% endfor %}
+    </select>
+    {% else %}
+        <p style="font-weight: bold; font-size:1.2em;">List player:</p>
+        <ul id="list_player">
+            {% for play in all_player %}
+                 <li id="list-{{ play.id }}" data-id="{{ play.id }}">
+                   {% if play.first_name or play.last_name %}
+                       {{ play.first_name }} {{ play.last_name }}
+                   {% else %}
+                       {{ play.username }}
+                   {% endif %}
+                 <div id="info-player-{{ play.id }}" style="display: none">
+                       <div class="img-user">
+                          <img width="100px" height="100px" class="event-cover" src="{{ MEDIA_URL }}{{ play.profile.avatar }}"/>
+                       </div>
+                       <div class="info">
+                        <b>Name: </b><span> {{ play.first_name }} {{ play.last_name }} </span><br>
+                        <b>Position: </b><span> {{ play.profile.pos }}</span><br>
+                        <b>Number: </b><span> {{ play.profile.num }}</span><br>
+                        <b>Email: </b><span> {{ play.email }}</span><br>
+                        <b>Contact: </b><span> {{ play.profile.contact }}</span><br>
+                       </div>
+                 </div>
+                 </li>
+
+            {% endfor %}
+        </ul>
+        {% if user.is_authenticated and perms.match.can_joinmatch %}
+            {% if is_join %}
+                <button id="join_match" class="btn btn-sm btn-primary">Unjoin</button>
+            {% else %}
+                <button id="join_match" class="btn btn-sm btn-primary">Join</button>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+    <br>
+    <div class="">
+        <p><b>Comments:</b><p>
+        <div id="list_comment">
+            {% for comment in match.comment_set.all %}
+                {% if comment.comment %}
+                <div class="comment row" id="comment-{{ comment.id }}">
+                    <div class="col-md-3">
+                        <b>{{ comment.creator | escape }} </b> said:
+                    </div>
+                    <div class="col-md-9 ">
+                        <div class="pull-right">
+                        <span class="comment-meta">{{ comment.created }}</span>
+                        {% if perms.match.can_modify %}
+                            <input type="checkbox" class="delete-comment-id" name="comment_id" value="{{ comment.id }}"/>
+                        {% endif %}
+                        </div>
+                    </div>
+                    <div style="margin-left: 40px">
+                        {{ comment.comment | escape}}
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if perms.match.can_modify %}
+           <br/><input type="submit" class="btn" id="delete-comment-button" value="Delete comments"/>
+        {% endif %}
+    </div>
+
+    <div class="comment-form">
+                {% if user.is_authenticated %}
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="is_comment" value="1"/>
+                        <label>Your comment</label>
+                        {{ commentform.comment }}
+                        <br>
+                        <input class="btn btn-primary" id="comment-button" type="submit" value="Comment"/>
+                    </form>
+                {% else %}
+                    Please <a href="{% url "account:login" %}?next={% url "match:detail" match.id %}">Login</a> to comment !
+                {% endif %}
+            </div>
+    <br>
+    <!-- modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Reason</h4>
+          </div>
+          <div class="modal-body">
+            <input class="form-control" type="text" id="reason" placeholder="Give me your reason ?"/>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="unjoin()">Save changes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <script>
+        function unjoin(){
+            var reason = $('#reason').val();
+            $.ajax({
+              url: "/match/remove_player/{{ match.id }}/",
+              type: "POST",
+              data: {
+                  'user_id' : {{ user.id }},
+                  'csrfmiddlewaretoken' : '{{ csrf_token }}',
+                  'reason' : reason
+              },
+              success: function(data, textStatus){
+                  $('#list-{{ user.id }}').remove();
+                  $('#join_match').text("Join");
+                  $('#myModal').modal('hide');
+                  console.log(data);
+              },
+              error: function(data, textStatus){
+
+              }
+            })
+        }
+        $(document).ready(function(){
+            var count = -1;
+            var a = "{{ has_player }}"
+            var b = a.split(",")
+           $('#my-select').multiSelect({
+              selectableHeader: "<div class='custom-header'>Avaiable Player</div>",
+              selectionHeader: "<div class='custom-header'>Attended player</div>",
+              afterInit: function(ms) {
+                $('#my-select').multiSelect('select', b);
+              },
+              afterSelect: function(values){
+                  console.log(values[0]);
+
+                  count ++;
+                  console.log(count);
+                  if (count > 0) {
+                      $.ajax({
+                          url: "/match/add_player/{{ match.id }}/",
+                          type: "POST",
+                          data: {
+                              'user_id' : values[0],
+                              'csrfmiddlewaretoken' : '{{ csrf_token }}'
+                          },
+                          success: function(data, textStatus){
+
+                          },
+                          error: function(data, textStatus){
+
+                          }
+                      })
+                  }
+              },
+              afterDeselect: function(values){
+                 $.ajax({
+                      url: "/match/remove_player/{{ match.id }}/",
+                      type: "POST",
+                      data: {
+                          'user_id' : values[0],
+                          'csrfmiddlewaretoken' : '{{ csrf_token }}',
+                          'reason' : ''
+                      },
+                      success: function(data, textStatus){
+
+                      },
+                      error: function(data, textStatus){
+
+                      }
+                  })
+              }
+           });
+
+            $('#a').click(function(){
+                $('#my-select').multiSelect('select', ['quoc']);
+                return true
+            })
+
+            $('#join_match').click(function(){
+                var self = $(this);
+                if (self.text() == "Unjoin"){
+                    $('#myModal').modal('show');
+                }
+                else{
+                    $.ajax({
+                      url: "/match/add_player/{{ match.id }}/",
+                      type: "POST",
+                      data: {
+                          'user_id' : {{ user.id }},
+                          'csrfmiddlewaretoken' : '{{ csrf_token }}'
+                      },
+                      success: function(data, textStatus){
+                          var play = data[0];
+                          html = '<li id="list-{{ user.id }}" data-id="{{ user.id }}" >{% if user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}'
+                          html += '<div id="info-player-'+play.id+'" style="display: none">'
+                          html += '<div class="img-user">'
+                          html += '<img width="100px" height="100px" class="event-cover" src="{{ MEDIA_URL }}'+play.avatar+'"/>'
+                          html += '</div>'
+                          html += '<div class="info">'
+                          html += '<b>Name: </b><span>'+ play.first_name + ' '+ play.last_name +'</span><br>'
+                          html += '<b>Position: </b><span>'+ play.pos +'</span><br>'
+                          html += '<b>Number: </b><span>'+ play.num +'</span><br>'
+                          html += '<b>Email: </b><span>'+ play.email +'</span><br>'
+                          html += '<b>Contact: </b><span>'+ play.contact +'</span><br>'
+                          html += '</div>'
+                          html += '</div>'
+                          html += '</li>'
+                          $('#list_player').append(html)
+                          self.text("Unjoin");
+                      },
+                      error: function(data, textStatus){
+
+                      }
+                    })
+                }
+            })
+            $('#delete-comment-button').click(function(){
+                var list_comment_id = new Array()
+                //get list comment id
+                $('.delete-comment-id').each(function(){
+                    if($(this).is(":checked")) {
+                        list_comment_id.push($(this).val());
+                    }
+                });
+                $.ajax({
+                      url: "/match/detail/{{ match.id }}/",
+                      type: "POST",
+                      data: {
+                          'is_delete_comment': 1,
+                          'comment_id' : list_comment_id,
+                          'csrfmiddlewaretoken' : '{{ csrf_token }}'
+                      },
+                      success: function(data, textStatus){
+                          $('.delete-comment-id').each(function(){
+
+                             if($(this).is(":checked")) {
+                                 var id = $(this).val()
+                                 $('#comment-' + id).fadeOut('slow');
+                                  setTimeout(function(){$('#comment-' + id).remove()}, 1000);
+                             }
+                            });
+                      },
+                      error: function(data, textStatus){
+
+                      }
+                    })
+                return false;
+            });
+            var list_player = $('#list_player');
+            list_player.on("mouseover", "li", function(){
+                var cl = '#info-player-' + $(this).data('id')
+                list  =  $(this);
+                list.addClass('visible');
+                $(cl).addClass('info-player').css('display','block');
+            });
+            list_player.on("mouseout", "li", function(){
+                var cl = '#info-player-' + $(this).data('id')
+                list  =  $(this);
+                list.removeClass('visible');
+                $(cl).removeClass('info-player').css('display','none');
+            });
+        })
+    </script>
+{% endblock %}

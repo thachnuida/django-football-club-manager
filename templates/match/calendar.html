@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% block calendar %}active{% endblock %}
+{% block extend_lib %}
+	<link rel="stylesheet" href="{% static "bower_components/fullcalendar/fullcalendar.css" %}" />
+	<script src="{% static "bower_components/fullcalendar/fullcalendar.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+
+	<div id='loading' style='display:none'>loading...</div>
+	<div id="calendar"></div>
+
+<div class="modal fade" id="mymodal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Add new match</h4>
+      </div>
+      <div class="modal-body">
+          <!-- form create match -->
+        <form id='match_form'method="POST" action = "{% url "match:calendar" %}" class="form-horizontal" role="form">
+           {% csrf_token %}
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Name</label>
+            <div class="col-sm-10">
+              <input type="text" id="name_match" class="form-control" name="name" placeholder="Name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Time</label>
+            <div class="col-sm-10">
+              <input type="text" id="time_match"  class="form-control datepicker" name="time" placeholder="Time">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Place</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="place" placeholder="Place">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Competitor</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="competitor" placeholder="Competitor">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type='button' id="submit_btn" class="btn btn-primary">New match</button>
+            </div>
+          </div>
+        </form>
+          <!-- end form -->
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>
+	$(document).ready(function(){
+
+		$('#calendar').fullCalendar({
+			header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,agendaWeek,agendaDay'
+			},
+            editable: true,
+			events: "{% url "match:get_match" %}",
+			loading: function(bool) {
+				if (bool) $('#loading').show();
+				else $('#loading').hide();
+			},
+            dateFormat: 'mm/dd/yyyy',
+
+            //show modal when click on day cell
+            dayClick: function(date, allDay, jsEvent, view) {
+                {% if perms.match.can_modify %}
+                date_f = $.fullCalendar.formatDate( date,'MM/dd/yyyy')
+                if (allDay) {
+                    $('#mymodal').modal('show');
+                    $('#time_match').val(date_f);
+                }else{
+                    //alert('Clicked on the slot: ' + date);
+                }
+                {% endif %}
+            }
+		})
+
+        // create match on calendar via ajax
+        $('#submit_btn').click(function(){
+            $("#match_form").submit(function(e){
+                var postData = $(this).serializeArray();
+                var formURL = $(this).attr("action");
+                $.ajax(
+                    {
+                        url : formURL,
+                        type: "POST",
+                        data : postData,
+                        success:function(data, textStatus, jqXHR)
+                        {
+                            $('#mymodal').modal('hide');
+                            var newEvent = new Object();
+                            newEvent.title = $('#name_match').val();
+                            newEvent.start = $('#time_match').val();
+                            newEvent.url = "/match/detail/" + data;
+                            newEvent.allDay = false;
+                            $('#calendar').fullCalendar( 'renderEvent', newEvent );
+                        },
+                        error: function(jqXHR, textStatus, errorThrown)
+                        {
+                        }
+                    });
+                e.preventDefault();	//STOP default action
+            });
+            $("#match_form").submit();
+        });
+
+    });
+</script>
+{% endblock %}

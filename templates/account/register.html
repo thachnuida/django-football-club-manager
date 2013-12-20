@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Create new player {% endblock %}
+{% block content %}
+<h1>Register</h1>
+
+<form action="" method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	
+	{% if profile.avatar %}
+		<img width="200px" height="200px" class="event-cover" src="{{ MEDIA_URL }}{{ profile.avatar }}"/>
+	{% endif %}
+	
+	{{ user_form }}
+	{{ user_profile_form }}
+	<br/>
+	<input type="submit" class="btn btn-primary" value="Save"/>
+</form>
+<script>
+    function add_style(){
+        $('#id_username').addClass('form-control').text('');
+        $('#id_first_name').addClass('form-control');
+        $('#id_last_name').addClass('form-control');
+        $('#id_password1').addClass('form-control').attr('type','password');
+        $('#id_password2').addClass('form-control').attr('type','password');
+    }
+    $(document).ready(function(){
+        add_style();
+    })
+    </script>
+{% endblock %}

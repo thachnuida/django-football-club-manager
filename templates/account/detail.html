@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Profile of {{ user.username }}</h1>
+
+<div class="row-fluid">
+	<div class="span2">Avatar</div><div class="span10">	{% if user.profile.avatar %}	<img width="100px" height="100px" class="event-cover" src="{{ MEDIA_URL }}{{ user.profile.avatar }}"/>{% endif %}</div>
+</div>
+
+<div class="row-fluid">	
+	<div class="span2">First name</div><div class="span10">{{ user.first_name }}</div>
+</div>
+
+<div class="row-fluid">	
+	<div class="span2">Last name</div><div class="span10">{{ user.last_name }}</div>
+</div>
+
+<div class="row-fluid">	
+	<div class="span2">Company</div><div class="span10">{{ user.profile.company }}</div>
+</div>
+
+{% endblock %}

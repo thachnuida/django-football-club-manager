@@ -1,0 +1,23 @@
+{
+  "name": "footballfc",
+  "version": "0.0.0",
+  "description": "Static file",
+  "authors": [
+    "Quoc nguyen"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "multiselect": "~0.9.8",
+    "jquery": "~2.0.3",
+    "bootstrap": "~3.0.3",
+    "fullcalendar": "~1.6.4",
+    "bootstrap-datepicker": "~1.2.0"
+  }
+}

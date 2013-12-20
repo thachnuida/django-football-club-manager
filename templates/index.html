@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <h1>{{ user.username }}</h1>
+    {% endif %}
+    {% if new_match %}
+        <p>{{ new_match.id }}</p>
+        <p>{{ new_match.name }}</p>
+        <p>{{ new_match.place }}</p>
+    {% endif %}
+    <h1>Football Club MG</h1>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Dear {{ manager.username }},<br/><br/>
+
+I'm {{ user.username }} <br/><br/>
+
+I'll unjoin the {{ match.name }} match with reason: {{ reason }} <br><br>
+
+Time: {{ match.time }} <br/>
+At: {{ match.place }}<br/><br/>
+
+See the match link for more detail: <a href="{{ site_url }}{% url "match:detail" match.id %}"> {{ match.name }}</a>

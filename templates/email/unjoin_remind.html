@@ -1,0 +1,8 @@
+Dear {{ user.username }},<br/><br/>
+
+You unjoined to the match : {{ match.name }}<br/><br/>
+
+Time: {{ match.time }} <br/>
+At: {{ match.place }}<br/><br/>
+
+See the event link for more detail: <a href="{{ site_url }}{% url "match:detail" match.id %}"> {{ match.name }}</a>

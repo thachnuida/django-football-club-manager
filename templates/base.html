@@ -1,0 +1,149 @@
+{% load staticfiles %}
+{% load base_ex %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}" media="screen">
+    <link rel="stylesheet" href="{% static "css/match_index.css" %}"/>
+    <link rel="stylesheet" href="{% static "css/image_hover.css" %}"/>
+    <link rel="stylesheet" href="{% static "css/daterangepicker-bs3.css" %}"/>
+    <link href='http://fonts.googleapis.com/css?family=Comfortaa' rel='stylesheet' type='text/css'>
+    <script src="{% static "bower_components/jquery/jquery.min.js" %}"></script>
+    <script src="{% static "bower_components/bootstrap/dist/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "js/daterangepicker.js" %}"></script>
+    <script src="{% static "js/bootstrap-datepicker.js" %}"></script>
+    <script src="{% static "js/moment.min.js" %}"></script>
+    <script src="{% static "js/ajax_setup.js"%}"></script>
+
+    {% block extend_lib %}
+
+    {% endblock %}
+    <style type="text/css">@import url("{% static "css/datepicker.css"%}");</style>
+    <title>{% block title %}Matchs{% endblock %}</title>
+
+</head>
+
+<body>
+    <div id="share-wrapper">
+        <ul class="share-inner-wrp">
+            <!-- Facebook -->
+            <li class="facebook button-wrap"><a href="#">Facebook</a></li>
+
+            <!-- Twitter -->
+            <li class="twitter button-wrap"><a href="#">Tweet</a></li>
+
+            <!-- Google -->
+            <li class="google button-wrap"><a href="#">Plus</a></li>
+
+            <!-- Email -->
+            <li class="email button-wrap"><a href="#">Email</a></li>
+        </ul>
+    </div>
+	<div id="container">
+		<div id="sidebar" >
+			{% block sidebar %}
+            <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+   <div class="container">
+  <!-- Brand and toggle get grouped for better mobile display -->
+  <div class="navbar-header">
+    <a class="navbar-brand" href="#">HTK-INC</a>
+  </div>
+
+  <!-- Collect the nav links, forms, and other content for toggling -->
+  <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <ul class="nav navbar-nav menu">
+      <li class="{% block match %}{% endblock %}"><a href="{% url "match:index" %}">Match Center</a></li>
+    <li class="{% block calendar %}{% endblock %}"><a href="{% url "match:calendar" %}">Calendar</a></li>
+      {% if user.is_authenticated %}
+      <li class="{% block profile %}{% endblock %}"><a href="{% url "account:profile" %}">Profile</a></li>
+          {% if perms.match.can_modify %}
+      <li class="{% block list %}{% endblock %}"><a href="{% url "account:list_player" %}">List player</a></li>
+      <li class="{% block create %}{% endblock %}"><a href="{% url "match:add" %}">Create Match</a></li>
+          {% endif %}
+      {% endif %}
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      {% if user.is_authenticated %}
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            {{ user.first_name }} {{ user.last_name }} <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="{% url "account:logout" %}">Logout</a></li>
+
+        </ul>
+      </li>
+      {% else %}
+          <li><a href="{% url "account:login" %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </div><!-- /.navbar-collapse -->
+       </div>
+</nav>
+			{% endblock %}
+		</div>
+
+		<div id="content" class="container-fluid">
+				<div class="container">
+                    <div class="match_index">
+					    {% block content %}{% endblock %}
+                    </div>
+                </div>
+		</div>
+    </div>
+<script>
+    $(document).ready(function() {
+	var pageTitle = document.title; //HTML page title
+	var pageUrl = location.href; //Location of the page
+
+
+	//user hovers on the share button
+	$('#share-wrapper li').hover(function() {
+		var hoverEl = $(this); //get element
+
+		//browsers with width > 699 get button slide effect
+		if($(window).width() > 699) {
+			if (hoverEl.hasClass('visible')){
+				hoverEl.animate({"margin-left":"-117px"}, "fast").removeClass('visible');
+			} else {
+				hoverEl.animate({"margin-left":"0px"}, "fast").addClass('visible');
+			}
+		}
+	});
+
+
+	//user clicks on a share button
+	$('.button-wrap').click(function(event) {
+			var shareName = $(this).attr('class').split(' ')[0]; //get the first class name of clicked element
+
+			switch (shareName) //switch to different links based on different social name
+			{
+				case 'facebook':
+					var openLink = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(pageUrl) + '&amp;title=Football Management by Django';
+					break;
+				case 'twitter':
+					var openLink = 'http://twitter.com/home?status=' + encodeURIComponent(pageTitle + ' ' + pageUrl);
+					break;
+				case 'google':
+					var openLink = 'https://plus.google.com/share?url=' + encodeURIComponent(pageUrl) + '&amp;title=' + encodeURIComponent(pageTitle);
+					break;
+				case 'email':
+					var openLink = 'mailto:?subject=' + pageTitle + '&body=Found this useful link for you : ' + pageUrl;
+					break;
+			}
+
+		//Parameters for the Popup window
+		winWidth 	= 650;
+		winHeight	= 450;
+		winLeft   	= ($(window).width()  - winWidth)  / 2,
+		winTop    	= ($(window).height() - winHeight) / 2,
+		winOptions   = 'width='  + winWidth  + ',height=' + winHeight + ',top='    + winTop    + ',left='   + winLeft;
+
+		//open Popup window and redirect user to share website.
+		window.open(openLink,'Share This Link',winOptions);
+		return false;
+	});
+});
+</script>
+</body>
+</html>
