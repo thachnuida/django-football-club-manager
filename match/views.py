@@ -191,17 +191,12 @@ def remove_player(request, match_id):
 def calendar(request):
   # create match from calendar
   if request.method == 'POST':
-    match = Match()
-    match.name = request.POST['name']
-    #convert time to correct format
-    ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(request.POST['time'],'%m/%d/%Y'))
-    match.time = ts
-    match.place = request.POST['place']
-    match.competitor = request.POST['competitor']
-    match.creator = request.user
-    match.save()
-    #return render(request, "match/calendar.html", )
-    return HttpResponse(match.id);
+    match_form = MatchForm(request.POST)
+    if match_form.is_valid():
+      match = match_form.save(commit=False)
+      match.creator = request.user
+      match.save()
+      return HttpResponse(match.id)
   else:
     return render(request, "match/calendar.html", )
 
