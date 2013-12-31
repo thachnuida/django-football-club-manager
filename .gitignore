@@ -51,4 +51,4 @@ docs/_build/
 
 static/bower_components
 
-media/img/*!index.html
+media/img
