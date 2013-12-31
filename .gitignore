@@ -50,4 +50,5 @@ coverage.xml
 docs/_build/
 
 static/bower_components
-media/img
+
+media/img/*!index.html
